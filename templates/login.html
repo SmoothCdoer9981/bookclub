@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Register' if register_mode else 'Login' }}{% endblock %}
+
+{% block content %}
+<style>
+    .login-card { max-width: 400px; margin: 4rem auto; padding: 2rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 1rem; }
+    .form-group { margin-bottom: 1rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+    .form-control { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
+    .btn-full { width: 100%; margin-top: 1rem; }
+    .toggle-link { text-align: center; margin-top: 1rem; font-size: 0.9rem; }
+</style>
+
+<div class="login-card">
+    <h2 style="margin-bottom: 1.5rem; text-align: center;">{{ 'Create Account' if register_mode else 'Welcome Back' }}</h2>
+    
+    <form action="{{ url_for('register' if register_mode else 'login') }}" method="POST">
+        <div class="form-group">
+            <label class="form-label">Username or Email</label>
+            <input type="text" name="username" class="form-control" required>
+        </div>
+        
+        {% if register_mode %}
+        <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" name="email" class="form-control" required>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" name="password" class="form-control" required>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-full">
+            {{ 'Sign Up' if register_mode else 'Log In' }}
+        </button>
+    </form>
+
+    <div class="toggle-link">
+        {% if register_mode %}
+            Already have an account? <a href="{{ url_for('login') }}">Log in here</a>
+        {% else %}
+            New here? <a href="{{ url_for('register') }}">Create an account</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "admin_base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .admin-book-card {
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 1.5rem;
+        align-items: center;
+        padding: 1.5rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        margin-bottom: 1.5rem;
+        animation: fadeIn 0.5s ease-in-out forwards;
+        opacity: 0;
+    }
+    .admin-book-card:nth-child(odd) {
+        animation-delay: 0.1s;
+    }
+    .admin-book-card:nth-child(even) {
+        animation-delay: 0.2s;
+    }
+    .admin-book-card img { width: 100%; border-radius: 0.5rem; }
+    .book-info h3 { margin-bottom: 0.25rem; }
+    .book-info p { font-size: 0.9rem; color: var(--text-secondary); }
+    .book-actions { display: flex; gap: 0.75rem; }
+
+    /* Added keyframes so opacity actually transitions to visible */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+</style>
+
+<div class="page-header">
+    <h2>Books Dashboard</h2>
+    <a href="{{ url_for('add_book') }}" class="btn btn-primary">Add New Book</a>
+</div>
+
+<div class="books-list">
+    {% for book in books %}
+        <div class="admin-book-card">
+            <img src="{{ book.image_url }}" alt="Cover for {{ book.title }}">
+            <div class="book-info">
+                <h3>{{ book.title }}</h3>
+                <p>
+                    {{ (book.chapters|length) if book.chapters is defined else 0 }}
+                    Chapter{{ 's' if (book.chapters is defined and book.chapters|length != 1) else '' }}
+                    &bull; Updated:
+                    {{ book.updated_at.strftime('%d %b %Y') if book.updated_at is defined and book.updated_at else 'N/A' }}
+                </p>
+            </div>
+            <div class="book-actions">
+                <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-secondary">Edit</a>
+                <a href="{{ url_for('manage_chapters', book_id=book.id) }}" class="btn btn-secondary">Chapters</a>
+                <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST"
+                      onsubmit="return confirm('Are you sure you want to delete this book?');">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <div class="form-card" style="text-align: center;">
+            <h3>No Books Found</h3>
+            <p>Get started by adding your first book to the library.</p>
+            <a href="{{ url_for('add_book') }}" class="btn btn-primary" style="margin-top: 1rem;">Add First Book</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

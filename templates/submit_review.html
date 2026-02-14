@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Leave a Review - Book Club{% endblock %}
+
+{% block content %}
+<style>
+    .form-card {
+        max-width: 600px;
+        margin: 2rem auto;
+        background-color: var(--bg-secondary);
+        padding: 2.5rem;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-md);
+    }
+    .form-card h1 { text-align: center; margin-bottom: 0.5rem; }
+    .form-card .subtitle { text-align: center; margin-bottom: 2rem; color: var(--text-secondary); }
+    
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+        background-color: var(--bg);
+        color: var(--text);
+        font-size: 1rem;
+        font-family: var(--font-sans);
+    }
+    .form-input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+    }
+    textarea.form-input { resize: vertical; min-height: 120px; }
+
+    .alert {
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.5rem;
+        border: 1px solid transparent;
+    }
+    .alert-success { background-color: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
+    .alert-danger { background-color: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+    html[data-theme='dark'] .alert-success { background-color: #064E3B; color: #A7F3D0; }
+    html[data-theme='dark'] .alert-danger { background-color: #7F1D1D; color: #FECACA; }
+
+</style>
+
+<div class="form-card">
+    <h1>Leave a Review for <em>{{ book.title }}</em></h1>
+    <p class="subtitle">Please note: All reviews are approved by a moderator before appearing on the site.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('submit_review', book_id=book.id) }}" method="POST" novalidate>
+        <div class="form-group">
+            <label for="reviewer_name">Your Name</label>
+            <input type="text" id="reviewer_name" name="reviewer_name" class="form-input" placeholder="e.g., Jane Doe" required>
+        </div>
+        <div class="form-group">
+            <label for="content">Your Review</label>
+            <textarea id="content" name="content" class="form-input" placeholder="What did you think of the book?" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Submit Review</button>
+    </form>
+</div>
+{% endblock %}

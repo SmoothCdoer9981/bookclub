@@ -1,0 +1,243 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Manage Chapters - {{ book.title }}{% endblock %}
+
+{% block content %}
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes zoomIn {
+        from { transform: scale(0.9); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+    .chapters-list {
+        display: grid;
+        gap: 1.5rem;
+    }
+    .chapter-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: box-shadow 0.3s, transform 0.3s;
+        animation: fadeIn 0.5s ease-in-out forwards;
+        opacity: 0;
+    }
+    .chapter-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transform: translateY(-4px);
+    }
+    .chapter-info .chapter-number {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    .chapter-info h3 {
+        margin: 0.25rem 0;
+        font-size: 1.25rem;
+    }
+    .chapter-info .chapter-meta {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+    }
+    .chapter-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background-color: var(--bg-secondary);
+        border: 1px dashed var(--border);
+        border-radius: 0.75rem;
+    }
+    .empty-state h3 { margin-bottom: 0.5rem; }
+    .empty-state p { margin-bottom: 1.5rem; color: var(--text-secondary); }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+        background-color: var(--bg-secondary);
+        margin: 5% auto;
+        padding: 2rem;
+        border: 1px solid var(--border);
+        width: 80%;
+        max-width: 700px;
+        border-radius: 0.75rem;
+    }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 1.5rem;
+    }
+    .close-button {
+        color: var(--text-secondary);
+        font-size: 1.75rem;
+        font-weight: bold;
+        cursor: pointer;
+        background: none;
+        border: none;
+    }
+    .admin-form .form-group {
+        margin-bottom: 1rem;
+    }
+    .admin-form label {
+        display: block;
+        margin-bottom: 0.5rem;
+        font-weight: 500;
+    }
+    .admin-form input, .admin-form textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        background-color: var(--bg);
+        color: var(--text);
+    }
+    .admin-form textarea {
+        min-height: 200px;
+        resize: vertical;
+    }
+    .form-actions {
+        margin-top: 1.5rem;
+        text-align: right;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+</style>
+
+    <div class="admin-header" style="animation: slideInDown 0.5s ease-out;">
+        <h2>Manage Chapters - {{ book.title }}</h2>
+        <div class="header-actions">
+            <button class="btn btn-primary" onclick="showAddChapterForm()">Add New Chapter</button>
+            <a href="{{ url_for('admin_panel') }}" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="chapters-container">
+        {% if book.chapters %}
+            <div class="chapters-list">
+                {% for chapter in book.chapters|sort(attribute='chapter_number') %}
+                    <div class="chapter-card" data-id="{{ chapter.id }}" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                        <div class="chapter-info">
+                            <span class="chapter-number">Chapter {{ chapter.chapter_number }}</span>
+                            <h3>{{ chapter.title }}</h3>
+                            <span class="chapter-meta">Last updated: {{ chapter.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                        <div class="chapter-actions">
+                            <button class="btn btn-secondary" onclick="editChapter({{ chapter.id }})">Edit</button>
+                            <form action="{{ url_for('delete_chapter', book_id=book.id, chapter_id=chapter.id) }}" method="POST" class="delete-form" onsubmit="return confirm('Are you sure you want to delete this chapter?');">
+                                <button type="submit" class="btn btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <h3>No Chapters Yet</h3>
+                <p>Start by adding your first chapter to this book.</p>
+                <button class="btn btn-primary" onclick="showAddChapterForm()">Add Your First Chapter</button>
+            </div>
+        {% endif %}
+    </div>
+
+    <div id="chapterModal" class="modal">
+        <div class="modal-content" style="animation: zoomIn 0.3s ease-out;">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Chapter</h3>
+                <button class="close-button" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="chapterForm" method="POST" class="admin-form" action="{{ url_for('add_chapter', book_id=book.id) }}">
+                <input type="hidden" id="chapterId" name="chapter_id">
+                <div class="form-group">
+                    <label for="chapterNumber">Chapter Number</label>
+                    <input type="number" id="chapterNumber" name="chapter_number" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="chapterTitle">Chapter Title</label>
+                    <input type="text" id="chapterTitle" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="chapterContent">Chapter Content</label>
+                    <textarea id="chapterContent" name="content" rows="15" required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Chapter</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('chapterModal');
+        const form = document.getElementById('chapterForm');
+
+        function showAddChapterForm() {
+            document.getElementById('modalTitle').textContent = 'Add New Chapter';
+            form.reset();
+            form.action = "{{ url_for('add_chapter', book_id=book.id) }}";
+            modal.style.display = 'block';
+        }
+
+        function editChapter(chapterId) {
+            document.getElementById('modalTitle').textContent = 'Edit Chapter';
+            fetch(`{{ url_for('get_chapter', book_id=book.id, chapter_id=0) }}`.replace('/0', `/${chapterId}`))
+                .then(response => response.json())
+                .then(chapter => {
+                    document.getElementById('chapterId').value = chapter.id;
+                    document.getElementById('chapterNumber').value = chapter.chapter_number;
+                    document.getElementById('chapterTitle').value = chapter.title;
+                    document.getElementById('chapterContent').value = chapter.content;
+                    form.action = `{{ url_for('edit_chapter', book_id=book.id, chapter_id=0) }}`.replace('/0', `/${chapterId}`);
+                    modal.style.display = 'block';
+                });
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+{% endblock %}

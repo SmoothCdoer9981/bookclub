@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chapter.title }} - {{ book.title }} - Book Club{% endblock %}
+
+{% block content %}
+
+<style>
+    /* ONLY Text Formatting applied here */
+    .chapter-text {
+        /* This makes every line end at the same length (Justified) */
+        text-align: justify;
+        text-justify: inter-word;
+        
+        /* Adds hyphenation to prevent big gaps between words */
+        -webkit-hyphens: auto;
+        -ms-hyphens: auto;
+        hyphens: auto;
+
+        /* Standard Word-like line spacing and font */
+        line-height: 1.5;
+        font-family: "Times New Roman", Times, serif;
+    }
+    
+    /* Ensures the text doesn't span the entire width of a wide monitor (like a Word page) */
+    .chapter-content {
+        max-width: 800px; 
+        margin: 0 auto;
+    }
+</style>
+
+<div class="reading-page">
+    <div class="reading-nav">
+        <a href="{{ url_for('book_page', book_id=book.id) }}" class="back-to-book">
+            <span>←</span> Chapter List
+        </a>
+        <div class="chapter-navigation">
+            {% if prev_chapter %}
+                <a href="{{ url_for('read_chapter', book_id=book.id, chapter_id=prev_chapter.id) }}" class="nav-btn prev-chapter">
+                    <span>←</span> Previous Chapter
+                </a>
+            {% endif %}
+            {% if next_chapter %}
+                <a href="{{ url_for('read_chapter', book_id=book.id, chapter_id=next_chapter.id) }}" class="nav-btn next-chapter">
+                    Next Chapter <span>→</span>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <main class="reading-content">
+        <article class="chapter-content">
+            <div class="chapter-text">
+                {{ chapter.content|safe }}
+            </div>
+
+            <footer class="chapter-meta">
+                <span>Last updated: {{ chapter.updated_at.strftime('%Y-%m-%d %H:%M') }}</span>
+            </footer>
+        </article>
+    </main>
+
+    <div class="reading-nav bottom">
+        <div class="chapter-navigation">
+            {% if prev_chapter %}
+                <a href="{{ url_for('read_chapter', book_id=book.id, chapter_id=prev_chapter.id) }}" class="nav-btn prev-chapter">
+                    <span>←</span> Previous Chapter
+                </a>
+            {% endif %}
+            {% if next_chapter %}
+                <a href="{{ url_for('read_chapter', book_id=book.id, chapter_id=next_chapter.id) }}" class="nav-btn next-chapter">
+                    Next Chapter <span>→</span>
+                </a>
+            {% endif %}
+        </div>
+        <a href="{{ url_for('book_page', book_id=book.id) }}" class="back-to-book">
+            Back to Chapter List
+        </a>
+    </div>
+</div>
+{% endblock %}

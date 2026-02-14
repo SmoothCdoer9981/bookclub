@@ -1,0 +1,100 @@
+{% extends "admin_base.html" %}
+{% block title %}Moderate Reviews{% endblock %}
+
+{% block content %}
+<style>
+    .page-header {
+        margin-bottom: 2rem;
+    }
+    .reviews-container {
+        display: grid;
+        gap: 1.5rem;
+    }
+    .review-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+    }
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+    .review-meta strong {
+        color: var(--text);
+    }
+    .review-meta span {
+        color: var(--text-secondary);
+    }
+    .review-content {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+    .review-actions {
+        margin-top: 1.5rem;
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+    .badge { 
+        padding: 0.25rem 0.75rem; 
+        border-radius: 999px; 
+        font-size: 0.8rem; 
+        font-weight: 600; 
+    }
+    .badge-success { background-color: #D1FAE5; color: #065F46; }
+    .badge-pending { background-color: #FEF3C7; color: #92400E; }
+    html[data-theme='dark'] .badge-success { background-color: #064E3B; color: #A7F3D0; }
+    html[data-theme='dark'] .badge-pending { background-color: #78350F; color: #FCD34D; }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+    }
+</style>
+
+<div class="page-header">
+    <h2>Review Moderation</h2>
+</div>
+
+<div class="reviews-container">
+    {% if reviews %}
+        {% for review in reviews %}
+            <div class="review-card">
+                <div class="review-header">
+                    <div class="review-meta">
+                        <strong>{{ review.reviewer_name }}</strong> on <span>{{ review.book.title }}</span>
+                    </div>
+                    <span class="badge {{ 'badge-success' if review.approved else 'badge-pending' }}">
+                        {{ 'Approved' if review.approved else 'Pending' }}
+                    </span>
+                </div>
+                <div class="review-content">
+                    <p>{{ review.content }}</p>
+                </div>
+                <div class="review-actions">
+                    {% if not review.approved %}
+                        <form method="POST" action="{{ url_for('approve_review', review_id=review.id) }}">
+                            <button type="submit" class="btn btn-primary">Approve</button>
+                        </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('reject_review', review_id=review.id) }}">
+                        <button type="submit" class="btn btn-danger">Reject</button>
+                    </form>
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <h3>No reviews to moderate.</h3>
+            <p>When users submit reviews, they will appear here for approval.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

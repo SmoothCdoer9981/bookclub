@@ -1,0 +1,40 @@
+{% extends "admin_base.html" %}
+{% block title %}Restore Database{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Restore Database</h2>
+    <a href="{{ url_for('backup_database') }}" class="btn btn-secondary">Back to Backups</a>
+</div>
+
+<div class="card">
+    <h3>Upload a Backup File</h3>
+    <p class="warning"><strong>Warning:</strong> Restoring from a backup will overwrite all current data. This action cannot be undone.</p>
+    <form method="POST" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to restore from this backup? All current data will be lost.');">
+        <div class="form-group">
+            <label for="backup_file">Backup File (.db)</label>
+            <input type="file" id="backup_file" name="backup_file" accept=".db" required>
+        </div>
+        <button type="submit" class="btn btn-danger">Restore Database</button>
+    </form>
+</div>
+
+<style>
+.card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 2rem;
+}
+.warning {
+    background-color: var(--danger);
+    color: #fff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+</style>
+{% endblock %}

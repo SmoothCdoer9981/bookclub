@@ -1,0 +1,57 @@
+{% extends "admin_base.html" %}
+{% block title %}{{ 'Edit' if user else 'Add' }} User{% endblock %}
+
+{% block content %}
+<style>
+/* ... [Keep existing styles] ... */
+.form-card { background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.75rem; padding: 2rem; max-width: 600px; margin: 0 auto; }
+.form-group { margin-bottom: 1.5rem; }
+.form-input, select.form-input { width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border); background-color: var(--bg); color: var(--text); font-size: 1rem; }
+.divider { border-top: 1px solid var(--border); margin: 2rem 0; position: relative; text-align: center; }
+.divider span { background: var(--bg-secondary); padding: 0 1rem; color: var(--text-secondary); position: relative; top: -0.8rem; }
+</style>
+
+<div class="page-header">
+    <h2>{{ 'Edit' if user else 'Add' }} User</h2>
+    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Cancel</a>
+</div>
+
+<div class="form-card">
+    <form method="POST">
+        {% if not user %}
+        <div class="form-group">
+            <label for="first_name">First Name</label>
+            <input type="text" id="first_name" name="first_name" class="form-input">
+        </div>
+        <div class="form-group">
+            <label for="surname">Surname</label>
+            <input type="text" id="surname" name="surname" class="form-input">
+        </div>
+        <div class="divider"><span>OR MANUAL ENTRY</span></div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" class="form-input" value="{{ user.username if user else '' }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="role">Role</label>
+            <select name="role" id="role" class="form-input">
+                <option value="user" {% if user and user.role == 'user' %}selected{% endif %}>Reader (User)</option>
+                <option value="admin" {% if user and user.role == 'admin' %}selected{% endif %}>Librarian (Archive Access)</option>
+                <option value="head" {% if user and user.role == 'head' %}selected{% endif %}>Head (Full Access)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-input">
+        </div>
+
+        <div style="text-align: right; margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary">{{ 'Save Changes' if user else 'Create User' }}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

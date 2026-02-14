@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>{% block title %}Archive{% endblock %} - Book Club</title>
+  <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    :root {
+      /* Light Theme (Warm Paper) - Matching styles.css */
+      --bg: #FDFBF7;
+      --bg-secondary: #FFFFFF;
+      --sidebar-bg: #FFFFFF;
+      --text: #2C2C2C;
+      --text-secondary: #6B665F;
+      --border: #E6E2D8;
+      --primary: #2B5F75;
+      --primary-hover: #1A3C4A;
+      --danger: #D94F3D;
+      --danger-hover: #C0392B;
+      --font-sans: 'Inter', sans-serif;
+      --font-serif: 'Playfair Display', serif;
+    }
+    
+    html[data-theme='dark'] {
+      --bg: #111111;
+      --bg-secondary: #1C1C1C;
+      --sidebar-bg: #1C1C1C;
+      --text: #EAEAEA;
+      --text-secondary: #A0A0A0;
+      --border: #333333;
+      --primary: #74B9FF;
+      --primary-hover: #4FA3F7;
+      --danger: #FF7675;
+      --danger-hover: #E15F5E;
+    }
+    
+    html[data-theme='green'] {
+      --bg: #0F1713;
+      --bg-secondary: #182620;
+      --sidebar-bg: #182620;
+      --text: #E2F7EB;
+      --text-secondary: #8BA696;
+      --border: #24382F;
+      --primary: #4ADE80;
+      --primary-hover: #22C55E;
+      --danger: #F87171;
+      --danger-hover: #EF4444;
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:var(--font-sans);background-color:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+    
+    h1, h2, h3, h4 { font-family: var(--font-serif); }
+
+    .sidebar{width:250px;background:var(--sidebar-bg);border-right:1px solid var(--border);padding:1.5rem;height:100vh;position:fixed;display:flex;flex-direction:column;flex-shrink:0;transition:transform .3s ease;z-index:1001;}
+    .sidebar-header a{font-family: var(--font-serif); font-size:1.5rem;font-weight:700;color:var(--text);text-decoration:none;}
+    .sidebar-nav{flex-grow:1;margin-top:2rem;}
+    .sidebar-nav ul{list-style:none;}
+    .sidebar-nav a{display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;border-radius:.5rem;color:var(--text-secondary);font-weight:500;margin-bottom:.5rem;transition: background-color 0.2s, color 0.2s;text-decoration:none;}
+    .sidebar-nav a:hover{background:var(--bg);color:var(--text);}
+    .sidebar-nav a.active { background: var(--primary); color: #fff; }
+    html[data-theme='dark'] .sidebar-nav a.active { color: #111; } /* Ensure text is readable in dark mode active state if needed */
+    .sidebar-nav a.active .lucide { color: inherit; }
+
+    .main-content{margin-left:250px;flex-grow:1;padding:2.5rem;transition:margin-left .3s ease;width: calc(100% - 250px);}
+    .mobile-header{display:none;}
+    
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+    
+    /* Flash Messages */
+    .flash-messages { margin-bottom: 1.5rem; }
+    .alert { padding: 1rem; border-radius: .5rem; border: 1px solid transparent; margin-bottom: 0.5rem; }
+    .alert-success { background-color: #D1FAE5; color: #065F46; border-color: #A7F3D0; }
+    .alert-danger { background-color: #FEE2E2; color: #991B1B; border-color: #FECACA; }
+    .alert-info { background-color: #DBEAFE; color: #1E40AF; border-color: #BFDBFE; }
+    
+    /* Dark mode alerts tweaks */
+    html[data-theme='dark'] .alert-success { background-color: #064E3B; color: #A7F3D0; border-color: #065F46; }
+    html[data-theme='dark'] .alert-danger { background-color: #7F1D1D; color: #FECACA; border-color: #991B1B; }
+    html[data-theme='dark'] .alert-info { background-color: #1E3A8A; color: #BFDBFE; border-color: #1E40AF; }
+
+    /* Button Styles */
+    .btn{display:inline-flex;align-items:center;gap:0.5rem;padding:.6rem 1.2rem;border-radius:4px;font-weight:500;border:1px solid transparent;cursor:pointer;text-align:center;text-decoration:none;transition:all .2s ease-in-out; letter-spacing: 0.025em; font-family: var(--font-sans);}
+    .btn:hover{transform:translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.05);}
+    .btn:active { transform: translateY(0); box-shadow: none; }
+    .btn-primary{background:var(--primary);color:#fff;}
+    .btn-primary:hover{background:var(--primary-hover);}
+    .btn-secondary { background-color: transparent; color: var(--text); border-color: var(--border); }
+    .btn-secondary:hover { background-color: var(--bg); border-color: var(--text); }
+    .btn-danger { background-color: var(--danger); color: #fff; }
+    .btn-danger:hover { background-color: var(--danger-hover); }
+
+    @media (max-width:768px){
+      body{flex-direction:column;}
+      .main-content{margin-left:0;padding:1.5rem;width: 100%;}
+      .mobile-header{display:flex;justify-content:space-between;align-items:center;padding:1rem;background:var(--sidebar-bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:1002;}
+      .sidebar{transform:translateX(-100%);height:100%;top:0;left:0;}
+      .sidebar.active{transform:translateX(0);}
+      .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;}
+      .overlay.active{display:block;}
+      .page-header { flex-direction: column; align-items: stretch; }
+      .page-header > .btn { width: 100%; }
+    }
+    
+    .theme-selector{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);}
+    #theme-toggle{width:100%;display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.6rem 1.2rem;border-radius:.5rem;font-weight:500;border:1px solid var(--border);cursor:pointer;background:var(--bg-secondary);color:var(--text);}
+    .sun-icon,.moon-icon,.tree-icon{display:none;}
+    html[data-theme='light'] .sun-icon{display:block;}
+    html[data-theme='dark'] .moon-icon{display:block;}
+    html[data-theme='green'] .tree-icon{display:block;}
+  </style>
+</head>
+<body>
+  <div class="mobile-header">
+    <button id="menu-toggle"><i data-lucide="menu"></i></button>
+    <a href="{{ url_for('admin_panel') }}" style="font-weight:bold;text-decoration:none;color:var(--text);">AHS Admin</a>
+  </div>
+  <div class="overlay" id="overlay"></div>
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <a href="{{ url_for('admin_panel') }}">Archive</a>
+    </div>
+    <nav class="sidebar-nav">
+      <ul>
+        <li><a href="{{ url_for('admin_panel') }}"><i data-lucide="layout-dashboard"></i> Dashboard</a></li>
+        <li><a href="{{ url_for('add_book') }}"><i data-lucide="plus-circle"></i> Add Book</a></li>
+        <li><a href="{{ url_for('admin_reviews') }}"><i data-lucide="shield-check"></i> Reviews</a></li>
+        
+        {% if current_user.is_head %}
+        <li><a href="{{ url_for('admin_users') }}"><i data-lucide="users"></i> Users</a></li>
+        <li><a href="{{ url_for('backup_database') }}"><i data-lucide="database-backup"></i> Backup & Restore</a></li>
+        {% endif %}
+        
+        <li><a href="{{ url_for('change_password') }}"><i data-lucide="lock"></i> Change Password</a></li>
+        <li><a href="{{ url_for('home') }}" target="_blank"><i data-lucide="external-link"></i> View Site</a></li>
+        <li><a href="{{ url_for('logout') }}"><i data-lucide="log-out"></i> Logout</a></li>
+      </ul>
+    </nav>
+    <div class="theme-selector">
+      <button id="theme-toggle">
+        <i data-lucide="sun" class="sun-icon"></i>
+        <i data-lucide="moon" class="moon-icon"></i>
+        <i data-lucide="tree-pine" class="tree-icon"></i>
+        <span class="theme-name"></span>
+      </button>
+    </div>
+  </aside>
+  <main class="main-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-messages">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message|safe }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded',()=>{
+      lucide.createIcons();
+      
+      // Theme switcher logic
+      const themeToggle=document.getElementById('theme-toggle');
+      const themeNameSpan=themeToggle.querySelector('.theme-name');
+      const themes=['light','dark','green']; 
+      const applyTheme=t=>{
+        document.documentElement.setAttribute('data-theme',t);
+        localStorage.setItem('adminTheme',t);
+        themeNameSpan.textContent=t.charAt(0).toUpperCase()+t.slice(1);
+        lucide.createIcons();
+      };
+      // Default to light if not set
+      applyTheme(localStorage.getItem('adminTheme')||'light');
+      themeToggle.addEventListener('click',()=>{
+        const current=localStorage.getItem('adminTheme')||'light';
+        const next=themes[(themes.indexOf(current)+1)%themes.length];
+        applyTheme(next);
+      });
+
+      // Mobile menu toggle
+      const menuToggle=document.getElementById('menu-toggle');
+      const sidebar=document.querySelector('.sidebar');
+      const overlay=document.getElementById('overlay');
+      menuToggle.addEventListener('click',()=>{
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+      });
+      overlay.addEventListener('click',()=>{
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+      });
+
+      // Active sidebar link highlighting
+      const currentPath = window.location.pathname;
+      document.querySelectorAll('.sidebar-nav a').forEach(link => {
+        if (currentPath.startsWith(link.getAttribute('href'))) {
+            if (link.getAttribute('href') === '{{ url_for("admin_panel") }}' && currentPath !== '{{ url_for("admin_panel") }}') {
+                return;
+            }
+            link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

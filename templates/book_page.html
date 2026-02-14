@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}{{ book.title }} - Book Club{% endblock %}
+
+{% block content %}
+<style>
+    .book-header {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        margin-bottom: 4rem;
+        animation: slideInFromLeft 0.8s ease-out;
+    }
+    @media (min-width: 768px) {
+        .book-header { grid-template-columns: 300px 1fr; gap: 3rem; }
+    }
+    .book-cover img {
+        width: 100%;
+        border-radius: 0.75rem;
+        box-shadow: var(--shadow-md);
+    }
+    .book-info h1 { margin-bottom: 0.5rem; }
+    .book-meta { margin-bottom: 1.5rem; color: var(--text-secondary); font-size: 0.9rem; }
+    .book-meta span + span { margin-left: 1rem; }
+
+    .content-section {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        animation: fadeIn 1s ease-in-out;
+    }
+    .content-section h2 { margin-bottom: 1.5rem; }
+
+    .chapter-item {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        transition: background-color 0.2s, transform 0.2s;
+    }
+    .chapter-item:hover {
+        background-color: var(--bg);
+        transform: translateX(5px);
+    }
+    .chapter-item .chapter-number { font-size: 1rem; color: var(--text-secondary); }
+    .chapter-item h3 { font-size: 1.1rem; font-weight: 500; }
+
+    .review-item {
+        padding: 1.5rem 0;
+        border-bottom: 1px solid var(--border);
+    }
+    .review-item:last-child { border-bottom: none; }
+    .review-item strong { color: var(--text); }
+    .review-item em { font-size: 0.9rem; color: var(--text-secondary); }
+</style>
+
+<div class="book-page">
+    <div class="book-header">
+        <div class="book-cover">
+            <img src="{{ book.image_url }}" alt="{{ book.title }}">
+        </div>
+        <div class="book-info">
+            <h1>{{ book.title }}</h1>
+            <div class="book-meta">
+                <span>Added: {{ book.created_at.strftime('%B %Y') }}</span>
+                <span>{{ book.chapters|length }} Chapter{{ 's' if book.chapters|length != 1 }}</span>
+            </div>
+            <p>{{ book.description }}</p>
+        </div>
+    </div>
+
+    <div class="content-section">
+        <h2>Table of Contents</h2>
+        {% if book.chapters %}
+            {% for chapter in book.chapters|sort(attribute='chapter_number') %}
+                <a href="{{ url_for('read_chapter', book_id=book.id, chapter_id=chapter.id) }}" class="chapter-item">
+                    <span class="chapter-number">#{{ chapter.chapter_number }}</span>
+                    <h3>{{ chapter.title }}</h3>
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>No chapters available yet. Check back later!</p>
+        {% endif %}
+    </div>
+
+    <div class="content-section">
+        <h2>Reviews</h2>
+        {% set approved_reviews = book.reviews.filter_by(approved=True).order_by(Review.created_at.desc()).all() %}
+        {% if not approved_reviews %}
+            <p>No reviews yet for this book.</p>
+        {% else %}
+            {% for review in approved_reviews %}
+                <div class="review-item">
+                    <p><strong>{{ review.reviewer_name }}</strong> &mdash; <em>{{ review.created_at.strftime('%d %B %Y') }}</em></p>
+                    <p style="margin-top: 0.5rem;">{{ review.content }}</p>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <a href="{{ url_for('submit_review', book_id=book.id) }}" class="btn btn-primary" style="margin-top: 2rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i> Leave a Review
+        </a>
+    </div>
+</div>
+{% endblock %}

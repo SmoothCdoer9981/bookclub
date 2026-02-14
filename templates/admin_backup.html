@@ -1,0 +1,105 @@
+{% extends "admin_base.html" %}
+{% block title %}Backup & Restore{% endblock %}
+
+{% block content %}
+<style>
+.card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+.backup-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.backup-list ul {
+    list-style: none;
+    padding: 0;
+}
+.backup-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--bg);
+    border-radius: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.warning {
+    background-color: var(--danger);
+    color: #fff;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.8;
+}
+.form-group {
+    margin-bottom: 1.5rem;
+}
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    background-color: var(--bg);
+    color: var(--text);
+}
+</style>
+
+<div class="page-header">
+    <h2>Backup & Restore</h2>
+</div>
+
+<div class="card">
+    <h3>Create or Download Backup</h3>
+    <p>Create a backup of the current database, or download the live database file directly.</p>
+    <div class="backup-actions" style="margin-top: 1rem;">
+        <form method="POST" action="{{ url_for('backup_database') }}">
+            <button type="submit" class="btn btn-primary">Create Backup</button>
+        </form>
+        <a href="{{ url_for('download_database') }}" class="btn btn-secondary">Download Live DB</a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Existing Backups</h3>
+    <p>Restore the database to a previous state from a saved backup.</p>
+    {% if backups %}
+        <div class="backup-list" style="margin-top: 1.5rem;">
+            <ul>
+                {% for backup in backups %}
+                    <li>
+                        <span>{{ backup }}</span>
+                        <div class="backup-actions">
+                            <form action="{{ url_for('restore_from_list', filename=backup) }}" method="POST" onsubmit="return confirm('Are you sure you want to restore from this backup? All current data will be lost.');">
+                                <button type="submit" class="btn btn-secondary">Restore</button>
+                            </form>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <p style="margin-top: 1.5rem;">No backups found.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Restore from File</h3>
+    <p class="warning"><strong>Warning:</strong> Restoring from an uploaded file will overwrite all current data. This action cannot be undone.</p>
+    <form method="POST" action="{{ url_for('restore_database') }}" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to restore from this uploaded file? All current data will be lost.');">
+        <div class="form-group">
+            <label for="backup_file">Backup File (.db)</label>
+            <input type="file" id="backup_file" name="backup_file" class="form-input" accept=".db" required>
+        </div>
+        <button type="submit" class="btn btn-danger">Upload and Restore</button>
+    </form>
+</div>
+{% endblock %}

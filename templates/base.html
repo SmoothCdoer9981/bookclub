@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Book Club{% endblock %}</title>
+    <meta name="description" content="Book Club is a book reading website" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('publicTheme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <a href="{{ url_for('home') }}" class="logo">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Book Club Logo">
+                <div class="logo-text-group">
+                    <span class="logo-text">Book Club</span>
+                </div>
+            </a>
+
+            <button class="hamburger" id="hamburger" aria-label="Menu">
+                <i data-lucide="menu"></i>
+            </button>
+
+            <nav class="nav-menu" id="nav-menu">
+                <ul class="nav-links">
+                    <li><a href="{{ url_for('home') }}">Bookshelf</a></li>
+
+                    {% if current_user.is_authenticated %}
+                        {% if current_user.is_admin %}
+                            <li><a href="{{ url_for('admin_panel') }}" style="color: var(--primary);">Admin</a></li>
+                        {% endif %}
+        
+                        <li><a href="{{ url_for('profile') }}">My Profile</a></li>
+                        <li><a href="{{ url_for('logout') }}" title="Log Out"><i data-lucide="log-out" style="width:18px;"></i></a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('login') }}">Login</a></li>
+                    {% endif %}
+
+                    <li>
+                        <button id="theme-toggle" aria-label="Toggle theme">
+                            <i data-lucide="sun" class="sun-icon"></i>
+                            <i data-lucide="moon" class="moon-icon"></i>
+                            <i data-lucide="tree-pine" class="tree-icon"></i>
+                            </button>
+                    </li>
+                </ul>
+            </nav>
+        </div>                            
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Icons immediately
+            if (window.lucide) {
+                window.lucide.createIcons();
+            }
+            initMobileMenu();
+            initThemeToggle();
+        });
+        
+        window.addEventListener('load', () => {
+            initTitleScroll();
+            
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(initTitleScroll, 250);
+            });
+        });
+
+        function initTitleScroll() {
+            document.querySelectorAll('.book-card-content h3').forEach(h3 => {
+                if (h3.scrollWidth > h3.clientWidth) {
+                    h3.classList.add('is-scrolling');
+                    const distance = h3.scrollWidth - h3.clientWidth + 20;
+                    h3.style.setProperty('--scroll-distance', `-${distance}px`);
+                } else {
+                    h3.classList.remove('is-scrolling');
+                    h3.style.removeProperty('--scroll-distance');
+                }
+            });
+        }
+
+        function initMobileMenu() {
+            const hamburger = document.getElementById('hamburger');
+            const navMenu = document.getElementById('nav-menu');
+            if(hamburger && navMenu) {
+                hamburger.addEventListener('click', () => {
+                    navMenu.classList.toggle('open');
+                    const icon = navMenu.classList.contains('open') ? 'x' : 'menu';
+                    // Update inner HTML and re-render icon
+                    hamburger.innerHTML = `<i data-lucide="${icon}"></i>`;
+                    if (window.lucide) window.lucide.createIcons();
+                });
+            }
+        }
+
+        function initThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themes = ['light', 'dark', 'green'];
+            
+            if(themeToggle) {
+                themeToggle.addEventListener('click', () => {
+                    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                    const idx = themes.indexOf(currentTheme);
+                    const newTheme = themes[(idx + 1) % themes.length];
+                    
+                    document.documentElement.setAttribute('data-theme', newTheme);
+                    localStorage.setItem('publicTheme', newTheme);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
